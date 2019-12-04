@@ -35,9 +35,6 @@ class Client:
             elif opcode == "Attach":
                 if operands[0]:
                     self.device = device.attach(operands[0])
-            elif opcode == "Upgrade":
-                self.protocol = 2
-                await self.websocket.send(json.dumps({"Results": [self.protocol]}))
             elif opcode == "GetAddress":
                 read_data = await self.device.read(space, int(operands[0], 16), int(operands[1], 16))
                 print(f"Client {self.name} > Binary data >> {len(read_data)} bytes")

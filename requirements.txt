@@ -1,0 +1,5 @@
+pUsb2Snes
+PyQt5
+websockets
+asyncqt
+fbs
