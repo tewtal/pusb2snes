@@ -2,5 +2,7 @@
     "app_name": "pUsb2Snes",
     "author": "total",
     "main_module": "src/main/python/main.py",
-    "version": "0.0.0"
+    "version": "0.0.0",
+    "gpg_pass": "",
+    "gpg_key": ""
 }

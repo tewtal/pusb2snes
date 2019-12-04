@@ -1,10 +1,11 @@
-from device import Device
+from devices.device import Device
 import asyncio
 
 class SD2SNESDevice(Device):
     def __init__(self, port):
         Device.__init__(self)
         self.name = f"SD2SNES {port}"
+        self.id = f"SD2SNES {port}"
         self.type = "SD2SNES"
         self.port = port
 

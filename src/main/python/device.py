@@ -1,33 +1,24 @@
 import asyncio
 
 devices = {}
+providers = set()
 
-class Device:
-    def __init__(self):
-        self.name = "Dummy device"
-        self.type = "Dummy"
-        self.lock = asyncio.Lock()
+from devices.sd2snes import SD2SNESDevice
+from devices.lua import LuaDevice
+from providers.lua import LuaProvider
+from providers.retroarch import RetroarchProvider
 
-    def attach(self):
-        pass
+def setup_devices():
+    devices = {}
 
-    async def read(self, space, address, length):
-        async with self.lock:
-            pass
-        return bytes([0xDD] * length)
+def setup_providers():
+    providers = set()
+    
+    # Initialize lua provider
+    providers.add(LuaProvider())
 
-    async def write(self, space, address, data):
-        async with self.lock:
-            pass
-        return True
-
-from sd2snes import SD2SNESDevice
-
-def setup():
-    d = Device()
-    devices[d.name] = d
-    d = SD2SNESDevice("COM2")
-    devices[d.name] = d
+    # Initialize retroarch provider
+    providers.add(RetroarchProvider())
 
 def attach(name):
     d = devices[name]
