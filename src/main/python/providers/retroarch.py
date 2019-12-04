@@ -1,7 +1,3 @@
-#
-# TODO: Rewrite UDP handling to be properly async instead of blocking
-#
-
 from providers.provider import Provider
 from device import devices
 from devices.retroarch import RetroarchDevice
@@ -30,12 +26,12 @@ class RetroarchProvider(Provider):
         self.version = "Unknown"
         self.loop.create_task(self.handle_connection())
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self.socket.settimeout(0.1)
+        self.socket.setblocking(0)
         self.device = None
 
-    def read_core_ram(self, address, length):
+    async def read_core_ram(self, address, length):
         self.socket.sendto(bytes(f"READ_CORE_RAM {address:x} {length}\n", "utf-8"), self.address)
-        data, server = self.socket.recvfrom(2048)
+        data = await wait_for(self.loop.sock_recv(self.socket, 1024), 1.0)
         response = data.decode("utf-8")
         command, address, ram = response.split(" ", 2)
         return ram.strip()
@@ -45,7 +41,7 @@ class RetroarchProvider(Provider):
             try:
                 if not self.connected:
                     self.socket.sendto(bytes("VERSION\n", "utf-8"), self.address)
-                    data, server = self.socket.recvfrom(1024)
+                    data = await wait_for(self.loop.sock_recv(self.socket, 1024), 1.0)
                     if data is not None:
                         version = data.decode("utf-8").strip()
                         self.version = version
@@ -55,13 +51,13 @@ class RetroarchProvider(Provider):
                 
                 if self.connected:
                     if self.state == STATE_DETECT_GAME:
-                        ram = self.read_core_ram(0, 1)
+                        ram = await self.read_core_ram(0, 1)
                         if ram != "-1":
                             print(f"RetroarchProvider < Detected running game")
                             self.state = STATE_DETECT_HEADER
                     
                     if self.state == STATE_DETECT_HEADER:
-                        ram = [int(x, 16) for x in self.read_core_ram(0xFFC0, 32).split(" ")]
+                        ram = [int(x, 16) for x in (await self.read_core_ram(0xFFC0, 32)).split(" ")]
                         rom_name = "".join([chr(x) for x in ram[:21]])
                         rom_makeup = ram[21]
                         rom_type = ram[22]
@@ -77,7 +73,6 @@ class RetroarchProvider(Provider):
                                     self.rom_type = (rom_type & 0x01)
                         
                         self.device_id += 1
-                        self.socket.settimeout(5) # Raise timout while we're doing things to account for interruptions
                         self.device = RetroarchDevice(self.socket, self.address, self.device_id, self.version, self.rom_name, self.rom_access, self.rom_type)
                         devices[self.device.id] = self.device                        
                         self.state = STATE_RUNNING
@@ -88,19 +83,18 @@ class RetroarchProvider(Provider):
                                 del devices[self.device.id]
                             self.device = None
                             self.connected = False
-                            self.socket.settimeout(0.1) # low timeout when attempting to connect to not block event loop for too long
                             self.state = STATE_NONE
 
             except Exception as ex:
-                if self.device is not None:
-                    if self.device in devices:
-                        del devices[self.device.id]
-                    self.device = None
-                self.connected = False
-                self.socket.settimeout(0.1) # low timeout when attempting to connect to not block event loop for too long
-                self.state = STATE_NONE
+                if self.connected == True:
+                    if self.device is not None:
+                        if self.device in devices:
+                            del devices[self.device.id]
+                        self.device = None                
+                    self.connected = False
+                    self.state = STATE_NONE
 
-            await sleep(5)
+            await sleep(1)
 
             
 

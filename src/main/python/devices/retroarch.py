@@ -20,6 +20,7 @@ class RetroarchDevice:
         self.rom_type = rom_type  
         self.block_size = 512         
         self.lock = asyncio.Lock()
+        self.loop = asyncio.get_event_loop()
         self.connected = True
         print(f"RetroarchDevice < Created {self.name}")
 
@@ -69,10 +70,10 @@ class RetroarchDevice:
 
         return int(addr)
     
-    def read_core_ram(self, address, length):
+    async def read_core_ram(self, address, length):
         read_str = f"READ_CORE_RAM {address:x} {length}\n"
         self.socket.sendto(bytes(read_str, "utf-8"), self.address)
-        data, server = self.socket.recvfrom(2048)
+        data = await asyncio.wait_for(self.loop.sock_recv(self.socket, 2048), 1.0)
         response = data.decode("utf-8")
         command, address, ram = response.split(" ", 2)
         return ram.strip()
@@ -109,7 +110,7 @@ class RetroarchDevice:
                         else:
                             next_addr = cur_addr + read_len
                         
-                        ram = [int(x, 16) for x in self.read_core_ram(cur_addr, read_len).split(" ")]
+                        ram = [int(x, 16) for x in (await self.read_core_ram(cur_addr, read_len)).split(" ")]
                         data += ram
                         cur_len += read_len
                         cur_addr = next_addr
@@ -141,8 +142,8 @@ class RetroarchDevice:
                         else:
                             write_len = length - cur_len
                         
-                        if ((cur_addr + write_len) & 0xFFFF) < (address & 0xFFFF):
-                            write_len = 0x10000 - ((cur_addr + write_len) & 0xFFFF)
+                        if ((cur_addr + write_len) & 0xFFFF) < (cur_addr & 0xFFFF):
+                            write_len = 0x10000 - (cur_addr & 0xFFFF)
                             next_addr = (address & 0xFF0000) + 0x010000
                             if self.rom_type == 0 and memtype == "CARTROM":
                                 next_addr += 0x8000
