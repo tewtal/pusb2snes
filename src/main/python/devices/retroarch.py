@@ -92,7 +92,6 @@ class RetroarchDevice:
                     address = self.remap(memtype, addr)
                     data = []
                     cur_len = 0
-                    cur_pos = 0
                     cur_addr = address
                     next_addr = 0
                     read_len = 0

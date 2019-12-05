@@ -16,6 +16,7 @@ class LuaDevice(Device):
         self.reader = reader
         self.writer = writer
         self.protocol = protocol
+        self.block_size = 16384
         print(f"LuaDevice < Created {self.name}")
 
     def __del__(self):
@@ -31,12 +32,24 @@ class LuaDevice(Device):
             async with self.lock:
                 try:
                     memtype, address = remap_memory(address)
-                    self.writer.write(bytes(f"Read|{address}|{length}|{memtype}\n", "utf-8"))
-                    await asyncio.wait_for(self.writer.drain(), 10.0)
-                    json_data = await asyncio.wait_for(self.reader.readline(), 10.0)
-                    data = json.loads(json_data)
-                    d = bytes(data["data"])
-                    return d
+                    data = []
+                    cur_len = 0
+                    read_len = 0
+                    cur_addr = address
+                    while cur_len < length:
+                        if cur_len + self.block_size < length:
+                            read_len = self.block_size
+                        else:
+                            read_len = length - cur_len
+
+                        self.writer.write(bytes(f"Read|{cur_addr}|{read_len}|{memtype}\n", "utf-8"))
+                        await asyncio.wait_for(self.writer.drain(), 10.0)
+                        json_data = await asyncio.wait_for(self.reader.readline(), 10.0)
+                        response = json.loads(json_data)
+                        data += response["data"]
+                        cur_len += read_len
+                        cur_addr += read_len
+                    return bytes(data)
                 except Exception as ex:
                     print(repr(ex))
                     self.stop()
@@ -49,10 +62,23 @@ class LuaDevice(Device):
             async with self.lock:
                 try:
                     memtype, address = remap_memory(address)
-                    write_str = f"Write|{address}|{memtype}|"
-                    write_str += "|".join([str(x) for x in data])
-                    self.writer.write(bytes(write_str + "\n", "utf-8"))
-                    await asyncio.wait_for(self.writer.drain(), 10.0)
+                    cur_len = 0
+                    write_len = 0
+                    cur_addr = address
+                    length = len(data)
+                    while cur_len < length:
+                        if cur_len + self.block_size < length:
+                            write_len = self.block_size
+                        else:
+                            write_len = length - cur_len
+
+                        write_str = f"Write|{cur_addr}|{memtype}|"
+                        write_str += "|".join([str(x) for x in data[cur_len:write_len]])
+                        self.writer.write(bytes(write_str + "\n", "utf-8"))
+                        await asyncio.wait_for(self.writer.drain(), 10.0)
+                        cur_len += write_len
+                        cur_addr += write_len
+
                     return True
                 except Exception as ex:
                     print(repr(ex))
