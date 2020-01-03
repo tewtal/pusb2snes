@@ -26,7 +26,7 @@ class Client:
             operands = data["Operands"] if "Operands" in data else []
             flags = data["Flags"] if "Flags" in data else []
 
-            #print(f"{self.name} < Opcode[{opcode}], Space[{space}], Operands{operands}")
+            # print(f"{self.name} < Opcode[{opcode}], Space[{space}], Operands{operands}")
             
             if opcode == "DeviceList":
                 await self.websocket.send(json.dumps({"Results": [d.id for d in device.devices.values()]}))
@@ -46,7 +46,7 @@ class Client:
                     await self.websocket.close()
                     return
                 
-                #print(f"{self.name} > Binary data >> {len(read_data)} bytes")
+                # print(f"{self.name} > Binary data >> {len(read_data)} bytes")
                 if read_data != False:
                     await self.websocket.send(read_data)
             elif opcode == "PutAddress":
@@ -80,6 +80,7 @@ async def connect(websocket, path):
     client = Client(websocket)
     connected.add(client)
     try:
+        print(f"Client {client.name} < Connected")
         async for message in websocket:
             try:
                 await client.handle_message(message)

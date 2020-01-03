@@ -10,7 +10,7 @@ class LuaProvider(Provider):
         self.device_id = 0
         self.port = port
         self.loop = get_event_loop()
-        self.loop.run_until_complete(start_server(self.handle_client, 'localhost', 65398, loop=self.loop))
+        self.loop.create_task(start_server(self.handle_client, 'localhost', 65398, loop=self.loop))
     
     async def handle_client(self, reader, writer):
         print(f'LuaProvider < New connection')

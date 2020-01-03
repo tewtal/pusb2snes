@@ -8,7 +8,7 @@ class Device:
         self.type = "Dummy"
         self.version = "1.0"        
         self.lock = asyncio.Lock()
-
+        
     def attach(self):
         pass
 

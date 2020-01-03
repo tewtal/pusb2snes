@@ -2,3 +2,5 @@ PyQt5
 websockets
 asyncqt
 fbs
+pyserial
+pyserial-asyncio

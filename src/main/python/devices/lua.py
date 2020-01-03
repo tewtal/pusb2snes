@@ -51,7 +51,6 @@ class LuaDevice(Device):
                         cur_addr += read_len
                     return bytes(data)
                 except Exception as ex:
-                    print(repr(ex))
                     self.stop()
                     return None
         else:
@@ -81,7 +80,6 @@ class LuaDevice(Device):
 
                     return True
                 except Exception as ex:
-                    print(repr(ex))
                     self.stop()
                     return None
         return False

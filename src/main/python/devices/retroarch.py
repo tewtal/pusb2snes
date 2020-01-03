@@ -116,7 +116,6 @@ class RetroarchDevice:
                     
                     return bytes(data)
                 except Exception as ex:
-                    print(repr(ex))
                     self.stop()
                     return None
         else:
@@ -155,7 +154,6 @@ class RetroarchDevice:
                     
                     return True
                 except Exception as ex:
-                    print(repr(ex))
                     self.stop()
                     return None
         else:

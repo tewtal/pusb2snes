@@ -27,6 +27,9 @@ class MainWindow(QMainWindow):
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
 
+def exception_handler(loop, context):
+    pass
+
 if __name__ == '__main__':
     # Create application instance
     appctxt = ApplicationContext()
@@ -34,6 +37,7 @@ if __name__ == '__main__':
 
     # Setup application loop
     loop = QEventLoop(appctxt.app)
+    loop.set_exception_handler(exception_handler)
     asyncio.set_event_loop(loop)
     
     # Create main window and systray menu

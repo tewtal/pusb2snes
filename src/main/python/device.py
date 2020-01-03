@@ -3,10 +3,9 @@ import asyncio
 devices = {}
 providers = set()
 
-from devices.sd2snes import SD2SNESDevice
-from devices.lua import LuaDevice
 from providers.lua import LuaProvider
 from providers.retroarch import RetroarchProvider
+from providers.sd2snes import SD2SNESProvider
 
 def setup_devices():
     devices = {}
@@ -19,6 +18,9 @@ def setup_providers():
 
     # Initialize retroarch provider
     providers.add(RetroarchProvider())
+
+    # Initialize SD2SNES provider
+    providers.add(SD2SNESProvider())
 
 def attach(name):
     d = devices[name]
