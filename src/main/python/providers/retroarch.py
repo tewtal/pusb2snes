@@ -57,20 +57,23 @@ class RetroarchProvider(Provider):
                             self.state = STATE_DETECT_HEADER
                     
                     if self.state == STATE_DETECT_HEADER:
-                        ram = [int(x, 16) for x in (await self.read_core_ram(0xFFC0, 32)).split(" ")]
-                        rom_name = "".join([chr(x) for x in ram[:21]])
-                        rom_makeup = ram[21]
-                        rom_type = ram[22]
-                        rom_size = ram[23]
-                        rom_sram = ram[24]
-                        rom_id = ram[26]
+                        header_locations = [0xFFC0, 0xC0FFC0]
+                        for location in header_locations:
+                            ram = [int(x, 16) for x in (await self.read_core_ram(location, 32)).split(" ")]
+                            rom_name = "".join([chr(x) for x in ram[:21]])
+                            rom_makeup = ram[21]
+                            rom_type = ram[22]
+                            rom_size = ram[23]
+                            rom_sram = ram[24]
+                            rom_id = ram[26]
 
-                        if (rom_makeup & 0b11100000) == 0x20:
-                            if rom_size < 0x10 and rom_sram < 0x10:
-                                if rom_id < 0x05 or rom_id == 0x33:
-                                    self.rom_access = True
-                                    self.rom_name = rom_name
-                                    self.rom_type = (rom_type & 0x01)
+                            if (rom_makeup & 0b11100000) == 0x20:
+                                if rom_size < 0x10 and rom_sram < 0x10:
+                                    if rom_id < 0x05 or rom_id == 0x33:
+                                        self.rom_access = True
+                                        self.rom_name = rom_name
+                                        self.rom_type = (rom_makeup & 0x01)
+                                        break
                         
                         self.device_id += 1
                         self.device = RetroarchDevice(self.socket, self.address, self.device_id, self.version, self.rom_name, self.rom_access, self.rom_type)
