@@ -59,21 +59,26 @@ class RetroarchProvider(Provider):
                     if self.state == STATE_DETECT_HEADER:
                         header_locations = [0xFFC0, 0xC0FFC0]
                         for location in header_locations:
-                            ram = [int(x, 16) for x in (await self.read_core_ram(location, 32)).split(" ")]
-                            rom_name = "".join([chr(x) for x in ram[:21]])
-                            rom_makeup = ram[21]
-                            rom_type = ram[22]
-                            rom_size = ram[23]
-                            rom_sram = ram[24]
-                            rom_id = ram[26]
+                            try:
+                                ram = [int(x, 16) for x in (await self.read_core_ram(location, 32)).split(" ")]
+                                rom_name = "".join([chr(x) for x in ram[:21]])
+                                rom_makeup = ram[21]
+                                rom_type = ram[22]
+                                rom_size = ram[23]
+                                rom_sram = ram[24]
+                                rom_id = ram[26]
 
-                            if (rom_makeup & 0b11100000) == 0x20:
-                                if rom_size < 0x10 and rom_sram < 0x10:
-                                    if rom_id < 0x05 or rom_id == 0x33:
-                                        self.rom_access = True
-                                        self.rom_name = rom_name
-                                        self.rom_type = (rom_makeup & 0x01)
-                                        break
+                                if (rom_makeup & 0b11100000) == 0x20:
+                                    if rom_size < 0x10 and rom_sram < 0x10:
+                                        if rom_id < 0x05 or rom_id == 0x33:
+                                            self.rom_access = True
+                                            self.rom_name = rom_name
+                                            self.rom_type = (rom_makeup & 0x01)
+                                            break
+                            except:
+                                self.rom_access = False
+                                self.rom_name = "Unknown"
+                                self.rom_type = 0
                         
                         self.device_id += 1
                         self.device = RetroarchDevice(self.socket, self.address, self.device_id, self.version, self.rom_name, self.rom_access, self.rom_type)

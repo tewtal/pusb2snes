@@ -90,6 +90,9 @@ class RetroarchDevice:
                 try:
                     memtype, addr = remap_memory(address)
                     address = self.remap(memtype, addr)
+                    if address == None:
+                        return bytes([0]*length)
+
                     data = []
                     cur_len = 0
                     cur_addr = address
@@ -108,8 +111,11 @@ class RetroarchDevice:
                                 next_addr += 0x8000
                         else:
                             next_addr = cur_addr + read_len
-                        
-                        ram = [int(x, 16) for x in (await self.read_core_ram(cur_addr, read_len)).split(" ")]
+                        ram_data = await self.read_core_ram(cur_addr, read_len)
+                        if ram_data == "-1":
+                            return bytes([0]*length)
+
+                        ram = [int(x, 16) for x in ram_data.split(" ")]
                         data += ram
                         cur_len += read_len
                         cur_addr = next_addr
