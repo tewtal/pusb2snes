@@ -5,6 +5,7 @@ import asyncio
 import socket
 import json
 import math
+import logging
 
 class RetroarchDevice:
     def __init__(self, socket, address, num, version, name, rom_access, rom_type):
@@ -22,10 +23,10 @@ class RetroarchDevice:
         self.lock = asyncio.Lock()
         self.loop = asyncio.get_event_loop()
         self.connected = True
-        print(f"RetroarchDevice < Created {self.name}")
+        logging.info(f"RetroarchDevice < Created {self.name}")
 
     def __del__(self):
-        print(f"RetroarchDevice > Deleted {self.name}")
+        logging.info(f"RetroarchDevice > Deleted {self.name}")
 
     def attach(self):
         pass

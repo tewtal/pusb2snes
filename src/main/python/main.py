@@ -8,6 +8,7 @@ import asyncio
 import websockets
 import ws
 import device
+import logging
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -34,6 +35,10 @@ if __name__ == '__main__':
     # Create application instance
     appctxt = ApplicationContext()
     appctxt.app.setQuitOnLastWindowClosed(False)
+
+    # Set loglevel to debug
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)    
 
     # Setup application loop
     loop = QEventLoop(appctxt.app)

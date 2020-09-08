@@ -4,6 +4,7 @@ from device import devices
 import asyncio
 import socket
 import json
+import logging
 
 class LuaDevice(Device):
     def __init__(self, num, protocol, version, reader, writer):
@@ -17,12 +18,12 @@ class LuaDevice(Device):
         self.writer = writer
         self.protocol = protocol
         self.block_size = 16384
-        print(f"LuaDevice < Created {self.name}")
+        logging.info(f"LuaDevice < Created {self.name}")
 
     def __del__(self):
         # Close socket
         self.writer.close()
-        print(f"LuaDevice > Deleted {self.name}")
+        logging.info(f"LuaDevice > Deleted {self.name}")
 
     def stop(self):
         del devices[self.id]

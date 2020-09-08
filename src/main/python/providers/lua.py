@@ -2,6 +2,7 @@ from providers.provider import Provider
 from device import devices
 from devices.lua import LuaDevice
 import socket
+import logging
 from asyncio import wait_for, start_server, get_event_loop
 
 class LuaProvider(Provider):
@@ -13,7 +14,7 @@ class LuaProvider(Provider):
         self.loop.create_task(start_server(self.handle_client, 'localhost', 65398, loop=self.loop))
     
     async def handle_client(self, reader, writer):
-        print(f'LuaProvider < New connection')
+        logging.info(f'LuaProvider < New connection')
         lua_device = None
         try:
             # Make sure this is a valid LUA client before setting up device

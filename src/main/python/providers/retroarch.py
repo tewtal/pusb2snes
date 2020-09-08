@@ -2,6 +2,7 @@ from providers.provider import Provider
 from device import devices
 from devices.retroarch import RetroarchDevice
 import socket
+import logging
 from asyncio import wait_for, start_server, get_event_loop, sleep
 
 STATE_NONE = 0
@@ -45,7 +46,7 @@ class RetroarchProvider(Provider):
                     if data is not None:
                         version = data.decode("utf-8").strip()
                         self.version = version
-                        print(f"RetroarchProvider < Got RA Version {version}")
+                        logging.info(f"RetroarchProvider < Got RA Version {version}")
                         self.connected = True
                         self.state = STATE_DETECT_GAME
                 
@@ -53,7 +54,7 @@ class RetroarchProvider(Provider):
                     if self.state == STATE_DETECT_GAME:
                         ram = await self.read_core_ram(0, 1)
                         if ram != "-1":
-                            print(f"RetroarchProvider < Detected running game")
+                            logging.info(f"RetroarchProvider < Detected running game")
                             self.state = STATE_DETECT_HEADER
                     
                     if self.state == STATE_DETECT_HEADER:
